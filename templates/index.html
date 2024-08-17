@@ -1,1 +1,232 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Emotion Detection</title>
+    <style>
+        body {
+            font-family: 'Arial', sans-serif;
+            margin: 0;
+            padding: 0;
+            overflow: hidden;
+            position: relative;
+            height: 100vh;
+            background-color: #121212;
+            color: #e0e0e0;
+            transition: background-color 0.3s, color 0.3s;
+        }
 
+        .dark-mode {
+            background-color: #e0e0e0;
+            color: #121212;
+        }
+
+        .container {
+            background-color: rgba(255, 255, 255, 0.1);
+            border-radius: 15px;
+            box-shadow: 0 8px 16px rgba(0, 0, 0, 0.3);
+            padding: 20px;
+            text-align: center;
+            max-width: 800px;
+            width: 100%;
+            margin: 50px auto;
+            position: relative;
+            z-index: 10;
+            backdrop-filter: blur(10px);
+        }
+
+        h1 {
+            font-size: 2.5rem;
+            margin-bottom: 20px;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+        }
+
+        form {
+            margin-bottom: 20px;
+        }
+
+        input[type="file"] {
+            padding: 10px;
+            border-radius: 5px;
+            border: none;
+            width: 40%;
+            box-sizing: border-box;
+            background-color: #FF00FF	;
+            color: #FFF;
+            cursor: pointer;
+            font-size: 1rem;
+        }
+
+        input[type="file"]::-webkit-file-upload-button {
+            visibility: hidden;
+        }
+
+        button {
+            background-color: #FF00FF	;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 50px;
+            cursor: pointer;
+            margin-top: 10px;
+            font-size: 1.1rem;
+            transition: background-color 0.3s, transform 0.2s;
+        }
+
+        button:hover {
+            background-color: #0056b3;
+            transform: scale(1.05);
+        }
+
+        img {
+            width: 100%;
+            height: auto;
+            border-radius: 15px;
+            border: 4px solid #4B0082;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+            transition: transform 0.3s ease;
+        }
+
+        img:hover {
+            transform: scale(1.05);
+        }
+
+        /* Falling emojis */
+        .emoji-container {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            overflow: hidden;
+            z-index: 1;
+        }
+
+        .emoji {
+            position: absolute;
+            font-size: 2.5rem;
+            opacity: 0.9;
+            animation: fall linear infinite;
+        }
+
+        @keyframes fall {
+            0% {
+                transform: translateY(-100%);
+                opacity: 0;
+            }
+            20% {
+                opacity: 1;
+            }
+            100% {
+                transform: translateY(100vh);
+                opacity: 0;
+            }
+        }
+
+        .dark-mode .emoji {
+            filter: brightness(0.8);
+        }
+
+        .dark-mode-toggle {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            background-color: #1e88e5;
+            color: white;
+            border: none;
+            padding: 10px;
+            border-radius: 50px;
+            cursor: pointer;
+            z-index: 100;
+            transition: background-color 0.3s;
+        }
+
+        .dark-mode .dark-mode-toggle {
+            background-color: #0056b3;
+        }
+
+        .loading {
+            border: 6px solid #f3f3f3;
+            border-top: 6px solid #1e88e5;
+            border-radius: 50%;
+            width: 60px;
+            height: 60px;
+            animation: spin 1s linear infinite;
+            margin: 20px auto;
+            display: none;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        @media (max-width: 768px) {
+            h1 {
+                font-size: 2rem;
+            }
+        }
+
+        @media (max-width: 480px) {
+            h1 {
+                font-size: 1.5rem;
+            }
+
+            img {
+                border: 3px solid #1e88e5;
+            }
+        }
+    </style>
+</head>
+<body>
+    <button class="dark-mode-toggle">Toggle Dark Mode</button>
+    <div class="emoji-container"></div>
+    <div class="container">
+        <h1>Emotion Detection in Video</h1>
+        <form action="/" method="POST" enctype="multipart/form-data" onsubmit="showLoading()">
+            <input type="file" name="file" accept="video/*" required>
+            <button type="submit">Upload Video</button>
+        </form>
+        <div class="loading" id="loading"></div>
+        {% if video %}
+        <img src="{{ url_for('video_feed', video=video) }}" alt="Emotion Detection Video">
+        {% endif %}
+    </div>
+    <script>
+        // Array of emojis to use
+        const emojis = ["😀", "😂", "😍", "😢", "😎", "😡", "😱", "🤔", "😴", "🥳", "😜", "🙄", "😇"];
+
+        // Function to create a falling emoji
+        function createEmoji() {
+            const emoji = document.createElement('div');
+            emoji.classList.add('emoji');
+            emoji.textContent = emojis[Math.floor(Math.random() * emojis.length)];
+            emoji.style.left = Math.random() * 100 + "vw";
+            emoji.style.animationDuration = Math.random() * 3 + 2 + "s";
+            emoji.style.fontSize = Math.random() * 2 + 1 + "rem";
+            document.querySelector('.emoji-container').appendChild(emoji);
+
+            // Remove the emoji after it falls
+            emoji.addEventListener('animationend', () => {
+                emoji.remove();
+            });
+        }
+
+        // Create emojis at intervals
+        setInterval(createEmoji, 200);
+
+        // Dark mode toggle
+        const toggleButton = document.querySelector('.dark-mode-toggle');
+        toggleButton.addEventListener('click', () => {
+            document.body.classList.toggle('dark-mode');
+        });
+
+        // Show loading spinner
+        function showLoading() {
+            document.getElementById('loading').style.display = 'block';
+        }
+    </script>
+</body>
+</html>
